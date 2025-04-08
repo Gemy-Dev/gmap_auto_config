@@ -4,7 +4,8 @@ on:
   push:
     branches: [ main ]
     tags:
-      - 'v*'
+      Regarding Flutter version, I'll assume you're requesting this update to use Flutter 3.29.1, released around March 2025 based on their quarterly release schedule (estimated). Let me know if you meant something different by "flutter 3.29.1"!
+
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -31,18 +32,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup Java (required for Android builds if needed)
+      # Setup Java
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '17' # LTS as of 2025; check https://adoptium.net/temurin/releases/ for updates
           distribution: 'temurin'
 
       # Setup Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.3' # Use a stable version
+          flutter-version: '3.29.1' # Updated to requested version
           channel: 'stable'
           cache: true
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.yaml') }}
@@ -68,18 +69,17 @@ jobs:
 
       # Run code analysis
       - name: Run static analysis
-        run: flutter analyze --no-fatal-infos
+        run: dart analyze --fatal-infos
 
       # Run tests
       - name: Run tests
         run: flutter test
-        continue-on-error: true # Allow workflow to continue even if some tests fail
+        continue-on-error: true
 
       # Build for specific platform
       - name: Build
         run: ${{ matrix.build-command }}
         env:
-          # Add any necessary environment variables
           FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
 
       # Optimize macOS binary
