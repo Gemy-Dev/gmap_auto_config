@@ -2,11 +2,12 @@ name: Main CI
 
 on:
   push:
+    branches: [ main ]
     tags:
       - 'v*'
-  workflow_dispatch:
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,118 +15,116 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            artifact-path: build/linux/x64/release
+            build-command: flutter build linux --release
+          - os: windows-latest
+            artifact-path: build/windows/x64/runner/Release
+            build-command: flutter build windows --release
+          - os: macos-latest
+            artifact-path: build/macos/Build/Products/Release
+            build-command: flutter build macos --release
 
     steps:
-      - name: Checkout repo
+      # Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Setup Java (required for Android builds if needed)
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Setup Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.1'
+          flutter-version: '3.24.3' # Use a stable version
+          channel: 'stable'
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.yaml') }}
 
+      # Verify Flutter installation
+      - name: Verify Flutter
+        run: flutter doctor --verbose
+
+      # Cache pub dependencies
       - name: Cache Flutter dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-flutter-pub-cache-${{ hashFiles('**/pubspec.yaml') }}
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: ${{ runner.os }}-flutter-pub-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-flutter-pub-cache-
+            ${{ runner.os }}-flutter-pub-
 
+      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Cache build artifacts (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/cache@v2
-        with:
-          path: build/linux
-          key: ${{ runner.os }}-flutter-linux-build-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-linux-build-
+      # Run code analysis
+      - name: Run static analysis
+        run: flutter analyze --no-fatal-infos
 
-      - name: Cache build artifacts (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: actions/cache@v2
-        with:
-          path: build/windows
-          key: ${{ runner.os }}-flutter-windows-build-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-windows-build-
+      # Run tests
+      - name: Run tests
+        run: flutter test
+        continue-on-error: true # Allow workflow to continue even if some tests fail
 
-      - name: Cache build artifacts (macOS)
+      # Build for specific platform
+      - name: Build
+        run: ${{ matrix.build-command }}
+        env:
+          # Add any necessary environment variables
+          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
+
+      # Optimize macOS binary
+      - name: Optimize macOS binary
         if: matrix.os == 'macos-latest'
-        uses: actions/cache@v2
-        with:
-          path: build/macos
-          key: ${{ runner.os }}-flutter-macos-build-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-macos-build-
-
-      - name: Analyze project (no fail)
-        run: flutter analyze || true
-
-      - name: Build Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: flutter build linux --release
-
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        run: flutter build windows --release
-
-      - name: Build macOS
-        if: matrix.os == 'macos-latest'
-        run: flutter build macos --release
-
-      - name: Strip macOS binary to reduce size
-        if: matrix.os == 'macos-latest' && always()
         run: |
-          FILE="build/macos/Build/Products/Release/*.app/Contents/MacOS/*"
-          for f in $FILE; do
-            if [ -f "$f" ]; then
-              strip -x "$f"
-            fi
-          done
+          find build/macos/Build/Products/Release/*.app/Contents/MacOS -type f -exec strip -x {} \;
+        continue-on-error: true
 
-      - name: Upload Linux artifact
-        if: matrix.os == 'ubuntu-latest'
+      # Create artifact directory
+      - name: Prepare artifacts
+        run: |
+          mkdir -p artifacts
+          cp -r ${{ matrix.artifact-path }} artifacts/
+        continue-on-error: true
+
+      # Upload build artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-release
-          path: build/linux/x64/release/
+          name: ${{ runner.os }}-release
+          path: artifacts/
+          retention-days: 5
+        if: always()
 
-      - name: Upload Windows artifact
-        if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-release
-          path: build/windows/runner/Release
-
-      - name: Upload macOS artifact
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-release
-          path: build/macos/Build/Products/Release/*.app
-
+      # Create GitHub Release
       - name: Create GitHub Release
-        if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v1
+        if: github.ref_type == 'tag' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
           body: |
-            🎉 Release of version ${{ github.ref_name }} for ${{ matrix.os }}.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Release Assets
-        if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v1
-        with:
+            🎉 New release ${{ github.ref_name }}
+            
+            ## Builds
+            - Linux: ${{ matrix.os == 'ubuntu-latest' && '✅' || '❌' }}
+            - Windows: ${{ matrix.os == 'windows-latest' && '✅' || '❌' }}
+            - macOS: ${{ matrix.os == 'macos-latest' && '✅' || '❌' }}
+            
+            ## Changelog
+            - Add your changelog here
           files: |
-            build/linux/x64/release/**/*
-            build/windows/runner/Release/**/*
-            build/macos/Build/Products/Release/**/*.app/**/*
+            ${{ matrix.artifact-path }}/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
