@@ -32,6 +32,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   easy_stepper: ^0.8.5+1
   file_picker: ^10.0.0
+  path: ^1.9.1
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.0
