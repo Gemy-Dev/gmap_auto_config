@@ -1,0 +1,109 @@
+name: Flutter CI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.1'
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          
+          # For Linux, install gtk+3.0 and other necessary dependencies
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            sudo apt-get update
+            sudo apt-get install -y libgtk-3-dev
+          fi
+
+          # For macOS, ensure correct Flutter setup (e.g., for M1/M2)
+          if [ "${{ matrix.os }}" == "macos-latest" ]; then
+            brew install libimobiledevice
+          fi
+
+      - name: Analyze project (no fail)
+        run: flutter analyze || true
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: flutter build linux --release
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          flutter build windows --release
+
+      - name: Build macOS
+        if: matrix.os == 'macos-latest'
+        run: flutter build macos --release
+
+      - name: Strip macOS binary to reduce size
+        if: matrix.os == 'macos-latest' && always()
+        run: |
+          FILE="build/macos/Build/Products/Release/*.app/Contents/MacOS/*"
+          for f in $FILE; do
+            if [ -f "$f" ]; then
+              strip -x "$f"
+            fi
+          done
+
+      - name: Upload Linux artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: build/linux/x64/release/
+
+      - name: Upload Windows artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: build/windows/runner/Release
+
+      - name: Upload macOS artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: build/macos/Build/Products/Release/*.app
+
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body: |
+            🎉 Release of version ${{ github.ref_name }} for ${{ matrix.os }}.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/linux/x64/release/**/*
+            build/windows/runner/Release/**/*
+            build/macos/Build/Products/Release/**/*.app/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
