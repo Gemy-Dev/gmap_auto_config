@@ -1,6 +1,7 @@
-# Google Maps Flutter Auto Integration 
-
-# App Arcitecture
+<details> <summary>📁 <code>lib/</code> Project Structure</summary>
+text
+نسخ
+تحرير
 lib/
 ├── controller/
 │   └── integration_bloc/
@@ -19,26 +20,92 @@ lib/
 │
 ├── utils/
 │   └── color.dart
+</details>
+---
 
-this app helps you to select flutter project and add [google_maps_flutter] 
-auto and integrate it with andriod congigration and ios configration with add api key
+## ⚙️ Features
 
-# steps
+- Select a Flutter project folder.
+- Automatically adds `google_maps_flutter` to `pubspec.yaml`.
+- Runs `flutter pub get` automatically.
+- Configures Android (`AndroidManifest.xml`) and iOS (`AppDelegate.swift`/`.m`, `Info.plist`).
+- Inserts Google Maps API keys.
+- Replaces the main entry point (`main.dart`) with a demo map.
 
-[1][select project] folder if it's not have [pubspec.yaml] it show you message this is not flutte project
-    if project have [pubspec.yaml] file it will containu to step get it it will
+---
 
-[2][Integrate Package] first  try to get version from api if have any error,
-    it add package like this [google_maps_flutter:any]
-    then it will use [Process.run] to run [flutter pub get][] 
+## 🚀 How It Works
 
-[3][Map Api Key] here show dialog to user to ask him to add api key to use it when integration with [android]
-    and [ios] if user skip this it will not inclouded to the [AndroidManifest.xml] and [AppDelegate.swift] or [AppDelegate.m] and [info.plist]
+### 1️⃣ Select Project Folder
+- You’ll be asked to select a Flutter project folder.
+- If `pubspec.yaml` is not found, an error message is displayed.
+- If valid, the app continues to integration.
 
-[4][Andriod Configuration]  first check and add [INTERNET] premision and check if key is provide add it if not s s   skip this step
-[5][IOS Configuration] check wich file found [AppDelegate.swift] or [AppDelegate.m] and add import google line and
-    check if [mapKey] provide add it 
-    then chek [info.plist] and add [mapKey] if you wand to use it or some packge mybe need it in [info.plist]
-    and add to line to description of asking  location
+---
 
-[6] the last step of remove all content in the [main.dart] file and add demo map content # gmap_auto_config
+### 2️⃣ Integrate Package
+- The app attempts to fetch the latest version of `google_maps_flutter` from the internet.
+- If it fails, it adds the dependency as `google_maps_flutter:any`.
+- It then runs `flutter pub get` using `Process.run`.
+
+---
+
+### 3️⃣ API Key Setup
+- A dialog asks the user to enter a Google Maps API key.
+- If provided, the key is used in Android and iOS configurations.
+- If skipped, platform files will not include the key.
+
+---
+
+### 4️⃣ Android Configuration
+- Ensures the `INTERNET` permission is present in `AndroidManifest.xml`.
+- Adds the API key metadata block if a key was provided.
+
+---
+
+### 5️⃣ iOS Configuration
+- Detects and updates either `AppDelegate.swift` or `AppDelegate.m`.
+- Adds the required Google Maps import and API key initialization.
+- Updates `Info.plist` to include:
+  - Google Maps API key.
+  - Location usage descriptions.
+
+---
+
+### 6️⃣ Main File Setup
+- Clears the existing `main.dart` file.
+- Adds a minimal working map demo using `google_maps_flutter`.
+
+---
+
+## 🏷️ Tag
+
+`#gmap_auto_config`
+
+---
+
+## 📌 Requirements
+
+- Flutter SDK
+- Dart
+- Internet connection (to fetch package version)
+
+---
+
+## 📸 Screenshots
+
+> _Add your screenshots here if available_
+
+---
+
+
+
+---
+
+## 👨‍💻 Author
+
+Created by Gamal Abdel Nasser
+
+---
+
+Feel free to copy this into your `README.md`. Let me know if you want me to generate a markdown file for you or add enhancements like images or badges!
