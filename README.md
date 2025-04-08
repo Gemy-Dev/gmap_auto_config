@@ -1,26 +1,8 @@
-<details> <summary>📁 <code>lib/</code> Project Structure</summary>
-text
-نسخ
-تحرير
-lib/
-├── controller/
-│   └── integration_bloc/
-│       ├── integration_event.dart
-│       ├── integration_state.dart
-│       └── integration_bloc.dart
-│
-├── screen/
-│   ├── select_project_screen.dart
-│   └── process_time_line.dart
-│
-├── service/
-│   ├── integration_service.dart
-│   ├── pubspec_manager.dart
-│   └── service_helper.dart
-│
-├── utils/
-│   └── color.dart
-</details>
+# Google Maps Flutter Auto Integration 
+
+# App Arcitecture
+<img src="project.gif" width="600"/>
+
 ---
 
 ## ⚙️ Features
@@ -94,7 +76,8 @@ lib/
 
 ## 📸 Screenshots
 
-> _Add your screenshots here if available_
+<img src="project.gif" width="800"/>
+
 
 ---
 
@@ -105,6 +88,8 @@ lib/
 ## 👨‍💻 Author
 
 Created by Gamal Abdel Nasser
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gamal-abdel-nasser-07809a195/)
+
 
 ---
 
