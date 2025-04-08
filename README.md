@@ -1,7 +1,7 @@
 # Google Maps Flutter Auto Integration 
 
 # App Arcitecture
-<img src="project.gif" width="600"/>
+<img src="arch.gif" width="600"/>
 
 ---
 
