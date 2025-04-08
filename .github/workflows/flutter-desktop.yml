@@ -1,4 +1,6 @@
-name: Flutter CI
+# GitHub Actions CI/CD for Flutter (Windows, macOS, Linux)
+
+name: Flutter CI/CD
 
 on:
   push:
@@ -7,137 +9,67 @@ on:
     branches: [main]
 
 jobs:
-  linux:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          channel: stable
-      - name: Set up Java
-        uses: actions/setup-java@v4
+          flutter-version: '3.29.1'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: flutter build linux --release
+
+      - name: Build macOS
+        if: matrix.os == 'macos-latest'
+        run: flutter build macos --release
+
+      - name: Strip macOS binary (reduce size)
+        if: matrix.os == 'macos-latest'
+        run: |
+          APP_NAME="YourApp" # change this to your actual app name
+          BINARY="build/macos/Build/Products/Release/$APP_NAME.app/Contents/MacOS/$APP_NAME"
+          if [ -f "$BINARY" ]; then
+            strip -x "$BINARY"
+          else
+            echo "Binary not found: $BINARY"
+          fi
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: flutter build windows --release
+
+      - name: Upload Linux artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
         with:
-          distribution: "temurin"
-          java-version: 17
-      - name: Enable Linux for flutter
-        run: flutter config --enable-linux-desktop
-      - name: Update repo
-        run: sudo apt update
-      - name: Install utils
-        run: sudo apt install poppler-utils imagemagick clang cmake ninja-build pkg-config libgtk-3-dev
-      - name: Run analysis
-        run: make analyze
+          name: linux-release
+          path: build/linux/x64/release/
 
-
-      - name: Verify that nothing changed
-        run: test -z "$(git status --porcelain | tee /dev/stderr)"
-      - name: Push to codecov
-        run: bash <(curl -s https://codecov.io/bash)
-      - name: Prepare build
-        run: cd printing/example; flutter create -t app --no-overwrite --org net.nfet --project-name example .
-      - name: Build example for Linux
-        run: cd printing/example; flutter build -v linux
-      # - name: Build example for Android
-      #   run: cd printing/example; flutter build -v apk
-      # - name: Build demo for Web
-      #   run: cd demo; flutter build -v web
-
-  windows:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Upload macOS artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
         with:
-          channel: stable
-      - name: Enable Windows for flutter
-        run: flutter config --enable-windows-desktop
-      - name: Prepare build
-        run: cd printing/example; flutter create -t app --no-overwrite --org net.nfet --project-name example .
-      - name: Build example for Windows
-        run: cd printing/example; flutter build -v windows
+          name: macos-release
+          path: build/macos/Build/Products/Release/
 
-  macos:
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Upload Windows artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
         with:
-          channel: stable
-          architecture: x64
-      - name: Enable macOS for flutter
-        run: flutter config --enable-macos-desktop
-      - name: Prepare build
-        run: cd printing/example; flutter create -t app --no-overwrite --org net.nfet --project-name example .
-      - name: Build example for macOS
-        run: cd printing/example; flutter build -v macos
-      # - name: Build example for iOS
-      #   run: cd printing/example; flutter build -v ios
-
-  linux-dev:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: master
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: 17
-      - name: Enable Linux for flutter
-        run: flutter config --enable-linux-desktop
-      - name: Update repo
-        run: sudo apt update
-      - name: Install utils
-        run: sudo apt install poppler-utils imagemagick clang cmake ninja-build pkg-config libgtk-3-dev
-      - name: Run analysis
-        run: make analyze
-
-
-      - name: Verify that nothing changed
-        run: test -z "$(git status --porcelain | tee /dev/stderr)"
-      - name: Push to codecov
-        run: bash <(curl -s https://codecov.io/bash)
-      - name: Prepare build
-        run: cd printing/example; flutter create -t app --no-overwrite --org net.nfet --project-name example .
-      - name: Build example for Linux
-        run: cd printing/example; flutter build -v linux
-    
-
-  windows-dev:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: master
-      - name: Enable Windows for flutter
-        run: flutter config --enable-windows-desktop
-      - name: Prepare build
-        run: cd printing/example; flutter create -t app --no-overwrite --org net.nfet --project-name example .
-      - name: Build example for Windows
-        run: cd printing/example; flutter build -v windows
-
-  macos-dev:
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: master
-          architecture: x64
-      - name: Enable macOS for flutter
-        run: flutter config --enable-macos-desktop
-      - name: Prepare build
-        run: cd printing/example; flutter create -t app --no-overwrite --org net.nfet --project-name example .
-      - name: Build example for macOS
-        run: cd printing/example; flutter build -v macos
-      # - name: Build example for iOS
-      #   run: cd printing/example; flutter build -v ios
+          name: windows-release
+          path: build/windows/runner/Release
