@@ -21,7 +21,7 @@
 ### 1️⃣ Select Project Folder
 - You’ll be asked to select a Flutter project folder.
 - If `pubspec.yaml` is not found, an error message is displayed.
-- If valid, the app continues to integration.
+- If valid, the app continues to integration Package.
 
 ---
 
@@ -60,27 +60,10 @@
 
 ---
 
-## 🏷️ Tag
-
-`#gmap_auto_config`
-
----
-
-## 📌 Requirements
-
-- Flutter SDK
-- Dart
-- Internet connection (to fetch package version)
-
----
 
 ## 📸 Screenshots
 
 <img src="project.png" width="800"/>
-
-
----
-
 
 
 ---
@@ -91,6 +74,3 @@ Created by Gamal Abdel Nasser
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gamal-abdel-nasser-07809a195/)
 
 
----
-
-Feel free to copy this into your `README.md`. Let me know if you want me to generate a markdown file for you or add enhancements like images or badges!
