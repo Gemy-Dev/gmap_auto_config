@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-mixin class ApiServiceMixin {
+ class ApiService{
   Future<String?> getLatestVersion(String packageName) async {
     try {
       final uri = Uri.parse('https://pub.dev/api/packages/$packageName');
