@@ -8,7 +8,10 @@ enum PlatformCheck { android, ios }
 
 enum DelegateType { objectiveC, swift }
 
-class IntegrationService with ApiServiceMixin, PubspecManager {
+class IntegrationService {
+  final PubspecManager  _pubspec = PubspecManager();
+  final ApiService _apiService = ApiService();
+
   static const _packageName = 'google_maps_flutter';
 
   // File paths
@@ -21,9 +24,9 @@ class IntegrationService with ApiServiceMixin, PubspecManager {
   Future<void> integrationPackage(String projectPath) async {
     /// this will get last version from api
     /// if has error it will be null and we use [any] keyword
-    final packageVersion = await getLatestVersion(_packageName);
+    final packageVersion = await _apiService.getLatestVersion(_packageName);
 
-    await addDependency(projectPath, _packageName, version: packageVersion);
+    await _pubspec. addDependency(projectPath, _packageName, version: packageVersion);
   }
 
   Future<bool> androidConfig(String projectPath, [String? mapKey]) async {
