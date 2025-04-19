@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:gmap_auto_config/service/service_helper.dart';
 
-mixin class PubspecManager {
+ class PubspecManager {
   Future<bool> addDependency(
     String projectPath,
     String package, {
