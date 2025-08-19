@@ -151,7 +151,5 @@ gamal.n1991@gmail.com
 ## 👨‍💻 Author
 
 Created by Gamal Abdel Nasser
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gamal-abdel-nasser-07809a195/)
-
 
 >>>>>>> refs/remotes/origin/main
