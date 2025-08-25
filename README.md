@@ -89,13 +89,7 @@
 
 ## 👨‍💻 Author
 
-Created by Gamal Abdel Nasser
-gamal.n1991@gmail.com
 
-### 👤 Connect with me
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin)](https://www.linkedin.com/in/gamal-abdel-nasser-07809a195/)
-=======
 ## 🚀 How It Works
 
 ### 1️⃣ Select Project Folder
